@@ -22,10 +22,23 @@ public class Field {
 //        fieldHeight = height;
 //    }
 
-    public void initField() {
-        createBombs();
+    public void initField(int totalBombs) {
+        if (totalBombs > fieldHeight * fieldLength / 2)
+            totalBombs = fieldHeight * fieldLength / 2;;
+        for (int i = 0; i < totalBombs; i++)
+            createBombs();
+        createIndexes();
     }
 
+
+    private void createIndexes() {
+       for (int x = 0; x < fieldLength; x++)
+           for (int y = 0; y < fieldHeight; y++)
+               if (!field[x][y].isMined())
+                   for (Coord around : getCoordsAround(new Coord(x, y)))
+                        if (field[around.x][around.y].isMined())
+                            field[x][y].incIndex();
+    }
 
     private void createBombs() {
         int x;
@@ -41,14 +54,14 @@ public class Field {
     }
 
     boolean inField(Coord coord) {
-        return coord.x >= 0 && coord.x <= fieldLength &&
-                coord.y >= 0 && coord.y <= fieldHeight;
+        return coord.x >= 0 && coord.x < fieldLength &&
+                coord.y >= 0 && coord.y < fieldHeight;
     }
 
      ArrayList<Coord> getCoordsAround(Coord coord) {
         ArrayList<Coord> listOfAroundCoords = new ArrayList<>();
         for (int x = coord.x - 1; x <= coord.x + 1; x++)
-            for (int y = coord.y - 1; y < coord.y + 1; y++) {
+            for (int y = coord.y - 1; y <= coord.y + 1; y++) {
                 Coord coordAround = new Coord(x, y);
                 if (inField(coordAround)) {
                     if (coord.x % 2 != 0) {

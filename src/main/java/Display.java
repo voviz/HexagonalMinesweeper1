@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 public class Display extends JFrame {
 
     private JPanel panel;
+    private JLabel label;
     private Game game;
 
 
@@ -16,9 +17,16 @@ public class Display extends JFrame {
     Display() {
         game = new Game();
         game.start();
+        initLabel();
         initPanel();
         initFrame();
 //        setIconImage(); TODO
+    }
+
+    private void initLabel() {
+        label = new JLabel();
+        label.setText("Good luck!");
+        add(label, BorderLayout.SOUTH);
     }
 
     private void initFrame() {
@@ -26,8 +34,8 @@ public class Display extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
         setLocationRelativeTo(null);
-        setSize(new Dimension(Game.hexWidth + Game.hexWidth * 3 / 4 * Game.COLS,
-                Game.hexHeight * (Game.ROWS + 2) - Game.ROWS * 3));
+        setSize(new Dimension(Game.hexWidth * 3 / 4 * Game.COLS + Game.hexWidth * 11 / 16,
+                Game.hexHeight * (Game.ROWS + 1) + Game.hexHeight * 14/16 + 14));
         //pack();
     }
 
@@ -47,13 +55,12 @@ public class Display extends JFrame {
             public void mousePressed(MouseEvent e) {
                 int x = e.getX();
                 int y = e.getY();
-//                if (tapOnTile(x, y)) {
-                    Coord coord = findCoord(e.getX(), e.getY());
-                    if (e.getButton() == MouseEvent.BUTTON1)
-                        game.pressLeftButton(coord);
-                    if (e.getButton() == MouseEvent.BUTTON2)
-                        game.pressRightButton(coord);
-                //}
+                Coord coord = findCoord(e.getX(), e.getY());
+                if (e.getButton() == MouseEvent.BUTTON1)
+                    game.pressLeftButton(coord);
+                if (e.getButton() == MouseEvent.BUTTON3)
+                    game.pressRightButton(coord);
+                label.setText(getText());
                 panel.repaint();
             }
         });
@@ -61,38 +68,21 @@ public class Display extends JFrame {
         add(panel);
     }
 
-    private boolean tapOnTile(int x, int y) {
-        int xVal = x / (Game.hexWidth * 3/4);
-        int yVal = y / Game.hexHeight;
-        int dX = x % (Game.hexWidth * 3/4);
-        int dY = y % Game.hexHeight;
-        if (xVal == 0 && dX < Game.hexWidth / 4) {
-            if (dY < Game.hexHeight / 2)
-                return isInsideTriangle(dX, dY, Game.hexWidth / 4, 0, 0, Game.hexHeight / 2, Game.hexWidth / 2, Game.hexHeight / 2 );
-            else return isInsideTriangle(dX, dY, 0, Game.hexHeight / 2, Game.hexWidth / 4, Game.hexHeight / 2, Game.hexWidth / 4, Game.hexHeight);
-        }
-        return false;
+    private String getText() {
+        return switch (game.getGameState()) {
+            case PLAYING -> "Keep going!";
+            case BOOMED -> "OOps.... You lost";
+            case WON -> "Congratulations!!!";
+        };
     }
 
     private Coord findCoord(int x, int y) {
-        //Coord coord = new Coord(1,1);
         int xVal = x / (Game.hexWidth * 3/4);
         int yVal;
         if (xVal % 2 == 0)
-            yVal = (y) / Game.hexHeight;
-        else yVal = (y - Game.hexHeight / 2 - y * 3) / Game.hexHeight;
-        int dX = x % (Game.hexWidth * 3/4);
-        int dY = y % Game.hexHeight;
-        int slope = (Game.hexHeight / 2) / (Game.hexWidth / 4);
-        int caldX = dY / slope;
-        int delta = Game.hexWidth / 4 - caldX;
+            yVal = y / Game.hexHeight;
+        else yVal = (y - Game.hexHeight / 2) / Game.hexHeight;
         return new Coord(xVal, yVal);
     }
 
-    private boolean isInsideTriangle(int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3) {
-        int a = (x1-x0)*(y2-y1)-(x2-x1)*(y1-y0);
-        int b = (x2-x0)*(y3-y2)-(x3-x2)*(y2-y0);
-        int c = (x3-x0)*(y1-y3)-(x1-x3)*(y3-y0);
-        return a > 0 && b > 0 && c > 0 || (a < 0 && b < 0 && c < 0);
-    }
 }
