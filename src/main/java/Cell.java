@@ -14,6 +14,7 @@ public class Cell {
     }
 
     void open() {
+        if (isFlagged) return;
         isOpened = true;
     }
 
@@ -34,6 +35,7 @@ public class Cell {
     }
 
     void inverseFlag() {
+        if (isOpened) return;
         isFlagged = !isFlagged;
     }
 

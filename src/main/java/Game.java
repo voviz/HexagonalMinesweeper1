@@ -4,17 +4,15 @@ public class Game {
     static int hexRadius = 20; // 13
     static int COLS = 8;
     static int ROWS = 8;
-    private final int totalBombs = 10;
+    static int totalBombs = 10;
     private Field field;
     private boolean youWin;
     private boolean bombed;
-    private GameState gameState;
 
     public void start() {
         bombed = false;
         youWin = false;
         field = new Field(COLS, ROWS);
-        //field.setFieldSize(COLS, ROWS);
         field.initField(totalBombs);
     }
 
@@ -22,18 +20,28 @@ public class Game {
         return field.getField();
     }
 
-    public void pressLeftButton(Coord coord) {
+    public void pressLeftButton(int x, int y) {
+        Coord coord = findCoord(x, y);
+        if (coordNotInside(coord)) return;
         if (bombed || youWin) {
             start();
             return;
         }
         openCell(coord);
-        checkWinOrLose();
+        openBombsIfBombed();
     }
 
-    public void pressRightButton(Coord coord) {
+    public void pressRightButton(int x, int y) {
+        Coord coord = findCoord(x, y);
+        if (coordNotInside(coord)) return;
         if (!field.getField()[coord.x][coord.y].isOpened() && !youWin && !bombed)
             field.getField()[coord.x][coord.y].inverseFlag();
+    }
+
+    private boolean coordNotInside(Coord coord) {
+        if (coord.x >= COLS || coord.y >= ROWS)
+            return true;
+        return false;
     }
 
     private void openCell(Coord coord) {
@@ -50,7 +58,7 @@ public class Game {
         }
     }
 
-    private void checkWinOrLose() {
+    private void openBombsIfBombed() {
         if (bombed) {
             for (int x = 0; x < COLS; x++)
                 for (int y = 0; y < ROWS; y++) {
@@ -70,9 +78,29 @@ public class Game {
         return counterOfOpened;
     }
 
+    private Coord findCoord(int x, int y) {
+        int xVal = x / (Game.hexWidth * 3/4);
+        int yVal;
+        if (xVal % 2 == 0)
+            yVal = y / Game.hexHeight;
+        else yVal = (y - Game.hexHeight / 2) / Game.hexHeight;
+        return new Coord(xVal, yVal);
+    }
+
     public GameState getGameState() {
         if (bombed) return GameState.BOOMED;
         if (youWin) return GameState.WON;
         return GameState.PLAYING;
+    }
+
+    public void changeBombCount(String s) {
+        totalBombs = Integer.parseInt(s);
+    }
+
+    public void changeFieldSize(String cols, String rows) {
+        COLS = Integer.parseInt(cols);
+        ROWS = Integer.parseInt(rows);
+        if (totalBombs > COLS * ROWS / 2)
+            totalBombs = COLS * ROWS / 2;
     }
 }

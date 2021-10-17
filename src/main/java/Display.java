@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -8,6 +9,8 @@ public class Display extends JFrame {
     private JPanel panel;
     private JLabel label;
     private Game game;
+    private JMenuBar menuBar;
+    private ActionListener bombCountListener, fieldSizeListener, quitListener;
 
 
     public static void main(String[] args) {
@@ -20,7 +23,93 @@ public class Display extends JFrame {
         initLabel();
         initPanel();
         initFrame();
-//        setIconImage(); TODO
+        initListeners();
+        initMenuBar();
+        setIconImage(new ImageIcon(getClass().getResource("icon.png")).getImage());
+    }
+
+    private void initMenuBar() {
+        menuBar = new JMenuBar();
+        this.setJMenuBar(menuBar);
+        JMenu gameMenu = new JMenu("Игра");
+        menuBar.add(gameMenu);
+
+        JMenuItem bombsMenu = new JMenuItem("Количество бомб");
+        bombsMenu.addActionListener(bombCountListener);
+        gameMenu.add(bombsMenu);
+
+        JMenuItem fieldSizeMenu = new JMenuItem("Размер поля");
+        fieldSizeMenu.addActionListener(fieldSizeListener);
+        gameMenu.add(fieldSizeMenu);
+        gameMenu.addSeparator();
+
+        JMenuItem quitMenu = new JMenuItem("Выйти");
+        quitMenu.addActionListener(quitListener);
+        gameMenu.add(quitMenu);
+    }
+
+    private void initListeners() {
+        bombCountListener = e -> onBombCount();
+        fieldSizeListener = e -> onFieldSize();
+        quitListener = e -> onQuit();
+    }
+
+    private void onFieldSize() {
+        String cols = JOptionPane.showInputDialog(this, "Введите количество столбцов",
+                "Широта", JOptionPane.PLAIN_MESSAGE);
+        if (cols == null) return;
+        if (cols.isEmpty() || !isDigit(cols)) {
+            JOptionPane.showMessageDialog(this, "Вы ввели некорректные данные." + '\n' +
+                    "Введите количество столбцов в цифрах", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        String rows = JOptionPane.showInputDialog(this, "Введите количество рядов",
+                "Высота", JOptionPane.PLAIN_MESSAGE);
+        if (rows == null) return;
+        if (rows.isEmpty() || !isDigit(cols)) {
+            JOptionPane.showMessageDialog(this, "Вы ввели некорректные данные." + '\n' +
+                    "Введите количество рядов в цифрах", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        game.changeFieldSize(cols, rows);
+        setSize(new Dimension(Game.hexWidth * 3 / 4 * Game.COLS + Game.hexWidth * 11 / 16,
+                Game.hexHeight * (Game.ROWS + 1) + Game.hexHeight * 14/16 + 38));
+        game.start();
+        panel.repaint();
+    }
+
+
+    private void onQuit() {
+        String[] vars = {"Да", "Нет"};
+        int result = JOptionPane.showOptionDialog(this, "Вы уверены что хотите выйти?",
+                "Confirm exit", JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE, null, vars, "Да");
+        if (result == JOptionPane.YES_OPTION)
+            System.exit(0);
+    }
+
+
+    private void onBombCount() {
+        String s = JOptionPane.showInputDialog(this, "Введите количество бомб",
+                "Количество бомб", JOptionPane.PLAIN_MESSAGE);
+        if (s == null) return;
+        if (s.isEmpty() || !isDigit(s)) {
+            JOptionPane.showMessageDialog(this, "Вы ввели некорректные данные." + '\n' +
+                    "Введите количество бомб в цифрах", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        game.changeBombCount(s);
+        game.start();
+        panel.repaint();
+    }
+
+    private boolean isDigit(String s) {
+        try {
+            Integer.parseInt(s);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     private void initLabel() {
@@ -35,8 +124,7 @@ public class Display extends JFrame {
         setResizable(false);
         setLocationRelativeTo(null);
         setSize(new Dimension(Game.hexWidth * 3 / 4 * Game.COLS + Game.hexWidth * 11 / 16,
-                Game.hexHeight * (Game.ROWS + 1) + Game.hexHeight * 14/16 + 14));
-        //pack();
+                Game.hexHeight * (Game.ROWS + 1) + Game.hexHeight * 14/16 + 38));
     }
 
     private void initPanel() {
@@ -55,11 +143,10 @@ public class Display extends JFrame {
             public void mousePressed(MouseEvent e) {
                 int x = e.getX();
                 int y = e.getY();
-                Coord coord = findCoord(e.getX(), e.getY());
                 if (e.getButton() == MouseEvent.BUTTON1)
-                    game.pressLeftButton(coord);
+                    game.pressLeftButton(x, y);
                 if (e.getButton() == MouseEvent.BUTTON3)
-                    game.pressRightButton(coord);
+                    game.pressRightButton(x, y);
                 label.setText(getText());
                 panel.repaint();
             }
@@ -71,18 +158,8 @@ public class Display extends JFrame {
     private String getText() {
         return switch (game.getGameState()) {
             case PLAYING -> "Keep going!";
-            case BOOMED -> "OOps.... You lost";
-            case WON -> "Congratulations!!!";
+            case BOOMED -> "OOps.... You lost. Wanna try again?";
+            case WON -> "You won! Congratulations!!!";
         };
     }
-
-    private Coord findCoord(int x, int y) {
-        int xVal = x / (Game.hexWidth * 3/4);
-        int yVal;
-        if (xVal % 2 == 0)
-            yVal = y / Game.hexHeight;
-        else yVal = (y - Game.hexHeight / 2) / Game.hexHeight;
-        return new Coord(xVal, yVal);
-    }
-
 }

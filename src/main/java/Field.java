@@ -5,8 +5,8 @@ public class Field {
 
     private int fieldLength;
     private int fieldHeight;
-    public Cell[][] field;
-    Random random = new Random();
+    private Cell[][] field;
+    private Random random = new Random();
 
     public Field(int fieldLength, int fieldHeight) {
         this.fieldLength = fieldLength;
@@ -24,9 +24,9 @@ public class Field {
 
     public void initField(int totalBombs) {
         if (totalBombs > fieldHeight * fieldLength / 2)
-            totalBombs = fieldHeight * fieldLength / 2;;
+            totalBombs = fieldHeight * fieldLength / 2;
         for (int i = 0; i < totalBombs; i++)
-            createBombs();
+            createBomb();
         createIndexes();
     }
 
@@ -40,7 +40,7 @@ public class Field {
                             field[x][y].incIndex();
     }
 
-    private void createBombs() {
+    private void createBomb() {
         int x;
         int y;
         while (true) {
@@ -53,7 +53,7 @@ public class Field {
         }
     }
 
-    boolean inField(Coord coord) {
+    private boolean inField(Coord coord) {
         return coord.x >= 0 && coord.x < fieldLength &&
                 coord.y >= 0 && coord.y < fieldHeight;
     }
