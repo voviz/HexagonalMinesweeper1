@@ -8,7 +8,7 @@ public class Display extends JFrame {
 
     private JPanel panel;
     private JLabel label;
-    private Game game;
+    private Game game = new Game();
     private JMenuBar menuBar;
     private ActionListener bombCountListener, fieldSizeListener, quitListener;
 
@@ -18,7 +18,6 @@ public class Display extends JFrame {
     }
 
     Display() {
-        game = new Game();
         game.start();
         initLabel();
         initPanel();

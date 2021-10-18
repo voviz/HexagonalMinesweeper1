@@ -39,9 +39,7 @@ public class Game {
     }
 
     private boolean coordNotInside(Coord coord) {
-        if (coord.x >= COLS || coord.y >= ROWS)
-            return true;
-        return false;
+        return coord.x >= COLS || coord.y >= ROWS;
     }
 
     private void openCell(Coord coord) {
